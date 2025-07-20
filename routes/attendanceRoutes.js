@@ -4,12 +4,21 @@ const Attendance = require('../models/Attendance');
 
 // Mark Attendance
 router.post('/', async (req, res) => {
-  try {
-    const { staffId, date, status } = req.body;
-    const attendance = await Attendance.create({ staffId, date, status });
-    res.status(201).json(attendance);
-  } catch (err) {
-    res.status(400).json({ error: err.message });
+   try {
+    const data = req.body;
+
+    if (Array.isArray(data)) {
+      // Bulk insert
+      const saved = await Attendance.insertMany(data);
+      res.status(201).json({ message: 'Bulk attendance saved', data: saved });
+    } else {
+      // Single insert
+      const newRecord = new Attendance(data);
+      const saved = await newRecord.save();
+      res.status(201).json({ message: 'Attendance saved', data: saved });
+    }
+  } catch (error) {
+    res.status(500).json({ message: 'Error saving attendance', error });
   }
 });
 

@@ -7,18 +7,21 @@ const attendanceSchema = new mongoose.Schema({
     required: true
   },
   date: {
-    type: Date,
+    type: String, // Format: YYYY-MM-DD
+    required: true
+  },
+  shift: {
+    type: String,
+    enum: ['Morning', 'Evening'],
     required: true
   },
   status: {
     type: String,
-    enum: ['Present', 'Absent', 'Leave'],
+    enum: ['Present', 'Absent'],
     required: true
   }
-}, {
-  timestamps: true
-});
+}, { timestamps: true });
 
-attendanceSchema.index({ staffId: 1, date: 1 }, { unique: true }); // Prevent duplicate entries
+attendanceSchema.index({ staffId: 1, date: 1, shift: 1 }, { unique: true }); // Prevent duplicate entries
 
 module.exports = mongoose.model('Attendance', attendanceSchema);

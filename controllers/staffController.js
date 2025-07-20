@@ -14,11 +14,18 @@ exports.createStaff = async (req, res) => {
 
 // Get all staff
 exports.getAllStaff = async (req, res) => {
-  try {
-    const staff = await Staff.find();
-    res.json(staff);
+   try {
+    const { role } = req.query;
+
+    let filter = {};
+    if (role) {
+      filter.role = role;
+    }
+
+    const staff = await Staff.find(filter);
+    res.status(200).json(staff);
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.status(500).json({ message: 'Error fetching staff', error });
   }
 };
 
