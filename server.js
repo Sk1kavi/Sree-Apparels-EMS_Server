@@ -22,7 +22,8 @@ const staffRoutes = require('./routes/staffRoutes');
 app.use('/api/staff', staffRoutes);
 const attendanceRoutes = require('./routes/attendanceRoutes');
 app.use('/api/attendance', attendanceRoutes);
-
+const pieceRoutes = require('./routes/pieceRoutes');
+app.use('/api/pieces', pieceRoutes);
 // Serve uploaded images statically if needed (local disk storage fallback)
 app.use('/uploads', express.static('uploads'));
 

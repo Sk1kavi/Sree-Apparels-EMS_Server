@@ -42,22 +42,30 @@ router.get('/staff/:staffId', async (req, res) => {
   }
 });
 
-// Get Attendance by Date
-router.get('/date/:date', async (req, res) => {
+// Get Attendance by Date and Shift
+// GET /api/attendance?date=YYYY-MM-DD&shift=Morning
+router.get('/', async (req, res) => {
   try {
-    const date = new Date(req.params.date);
-    const start = new Date(date.setHours(0, 0, 0, 0));
-    const end = new Date(date.setHours(23, 59, 59, 999));
+    const { date, shift } = req.query;
+    if (!date || !shift) {
+      return res.status(400).json({ error: 'Date and shift are required' });
+    }
+
+    const selectedDate = new Date(date);
+    const start = new Date(selectedDate.setHours(0, 0, 0, 0));
+    const end = new Date(selectedDate.setHours(23, 59, 59, 999));
 
     const records = await Attendance.find({
-      date: { $gte: start, $lte: end }
-    }).populate('staffId', 'name role');
+      date: { $gte: start, $lte: end },
+      shift: shift
+    }).populate('staffId', 'name role imageUrl');
 
     res.json(records);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
+
 
 // Update Attendance
 router.put('/:id', async (req, res) => {
