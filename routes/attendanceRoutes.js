@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const Attendance = require('../models/Attendance');
+const Staff = require('../models/Staff');
 
 // Mark Attendance
 router.post('/', async (req, res) => {
@@ -19,16 +20,6 @@ router.post('/', async (req, res) => {
     }
   } catch (error) {
     res.status(500).json({ message: 'Error saving attendance', error });
-  }
-});
-
-// Get All Attendance
-router.get('/', async (req, res) => {
-  try {
-    const attendance = await Attendance.find().populate('staffId', 'name role');
-    res.json(attendance);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
   }
 });
 
@@ -51,16 +42,19 @@ router.get('/', async (req, res) => {
       return res.status(400).json({ error: 'Date and shift are required' });
     }
 
-    const selectedDate = new Date(date);
-    const start = new Date(selectedDate.setHours(0, 0, 0, 0));
-    const end = new Date(selectedDate.setHours(23, 59, 59, 999));
-
     const records = await Attendance.find({
-      date: { $gte: start, $lte: end },
+      date: date,
       shift: shift
     }).populate('staffId', 'name role imageUrl');
 
-    res.json(records);
+    if (records.length > 0) {
+      // Attendance already exists → return those records
+      return res.json({ type: "attendance", data: records });
+    } else {
+      // No attendance → return all staff
+      const staff = await Staff.find({}, 'name role imageUrl');
+      return res.json({ type: "staff", data: staff });
+    }
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
