@@ -12,7 +12,7 @@ const attendanceSchema = new mongoose.Schema({
   },
   shift: {
     type: String,
-    enum: ['Morning', 'Evening'],
+    enum: ['Morning', 'Afternoon' ,'Evening'],
     required: true
   },
   status: {
