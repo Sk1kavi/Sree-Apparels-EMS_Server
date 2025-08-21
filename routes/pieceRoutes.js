@@ -36,18 +36,35 @@ router.post('/dispatch/:id', async (req, res) => {
 router.get('/', async (req, res) => {
   try {
     const filters = {};
+
+    // dispatched filter
     if (req.query.isDispatched) {
       filters.isDispatched = req.query.isDispatched === 'true';
     }
-    if (req.query.paymentReceived) {
-      filters.paymentReceived = req.query.paymentReceived === 'true';
+
+    // payment status filter
+    if (req.query.paymentStatus) {
+      if (req.query.paymentStatus === 'paid') {
+        filters.$expr = { $eq: ["$expectedPayment", "$paymentAmount"] };
+      } else if (req.query.paymentStatus === 'unpaid') {
+        filters.paymentAmount = 0; // nothing paid
+      } else if (req.query.paymentStatus === 'partial') {
+        filters.$expr = { 
+          $and: [
+            { $gt: ["$paymentAmount", 0] }, 
+            { $lt: ["$paymentAmount", "$expectedPayment"] }
+          ] 
+        };
+      }
     }
+
     const trunks = await GarmentPiece.find(filters);
     res.json(trunks);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
+
 
 // GET /api/pieces/:id
 router.get('/:id', async (req, res) => {
