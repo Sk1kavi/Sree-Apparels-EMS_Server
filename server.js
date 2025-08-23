@@ -26,6 +26,9 @@ const pieceRoutes = require('./routes/pieceRoutes');
 app.use('/api/pieces', pieceRoutes);
 const stitchingRoutes = require('./routes/stitchingRoutes');
 app.use('/api/stitching', stitchingRoutes);
+const salaryRoutes = require("./routes/salary");
+app.use("/api/salary", salaryRoutes);
+
 // Serve uploaded images statically if needed (local disk storage fallback)
 app.use('/uploads', express.static('uploads'));
 
