@@ -44,19 +44,20 @@ router.get('/', async (req, res) => {
 
     // payment status filter
     if (req.query.paymentStatus) {
-      if (req.query.paymentStatus === 'paid') {
-        filters.$expr = { $eq: ["$expectedPayment", "$paymentAmount"] };
-      } else if (req.query.paymentStatus === 'unpaid') {
-        filters.paymentAmount = 0; // nothing paid
-      } else if (req.query.paymentStatus === 'partial') {
-        filters.$expr = { 
-          $and: [
-            { $gt: ["$paymentAmount", 0] }, 
-            { $lt: ["$paymentAmount", "$expectedPayment"] }
-          ] 
-        };
-      }
-    }
+  if (req.query.paymentStatus === 'completed') {
+    filters.$expr = { $eq: ["$paymentAmount", "$expectedPayment"] };
+  } else if (req.query.paymentStatus === 'pending') {
+    filters.$expr = { $eq: ["$paymentAmount", 0] }; // compare field to value
+  } else if (req.query.paymentStatus === 'partial') {
+    filters.$expr = { 
+      $and: [
+        { $gt: ["$paymentAmount", 0] }, 
+        { $lt: ["$paymentAmount", "$expectedPayment"] }
+      ] 
+    };
+  }
+}
+
 
     const trunks = await GarmentPiece.find(filters);
     res.json(trunks);
