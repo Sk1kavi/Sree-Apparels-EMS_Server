@@ -82,13 +82,23 @@ router.get('/:id', async (req, res) => {
 router.put('/payment/:id', async (req, res) => {
   try {
     const { paymentAmount } = req.body;
+    if (!paymentAmount || paymentAmount <= 0) {
+      return res.status(400).json({ error: 'Payment amount must be greater than 0' });
+    }
+
     const trunk = await GarmentPiece.findById(req.params.id);
     if (!trunk) return res.status(404).json({ error: 'Trunk not found' });
 
-    trunk.paymentAmount = paymentAmount;
-    trunk.paymentReceived = paymentAmount >= trunk.expectedPayment;
-    const updated = await trunk.save();
+    // Add new payment record
+    trunk.payments.push({ amount: paymentAmount, date: new Date() });
 
+    // Update totalPaid
+    trunk.totalPaid += paymentAmount;
+
+    // Mark payment received if fully paid
+    trunk.paymentReceived = trunk.totalPaid >= trunk.expectedPayment;
+
+    const updated = await trunk.save();
     res.json(updated);
   } catch (err) {
     res.status(400).json({ error: err.message });
@@ -118,5 +128,35 @@ router.get('/payment-status/unpaid', async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
+
+// GET /api/pieces/:id/generate-bill
+router.get('/:id/generate-bill', async (req, res) => {
+  try {
+    const trunk = await GarmentPiece.findById(req.params.id);
+    if (!trunk) return res.status(404).json({ error: 'Trunk not found' });
+
+    if (!trunk.paymentReceived) {
+      return res.status(400).json({ error: 'Bill can only be generated after full payment is received' });
+    }
+
+    // Bill structure
+    const bill = {
+      vendor: trunk.vendor, // Always "Ramraj Company"
+      trunkNumber: trunk.trunkNumber,
+      itemType: trunk.itemType,
+      quantity: trunk.quantity,
+      expectedPayment: trunk.expectedPayment,
+      totalPaid: trunk.totalPaid,
+      paymentStatus: trunk.paymentReceived ? "Paid in Full" : "Pending",
+      payments: trunk.payments,
+      generatedDate: new Date()
+    };
+
+    res.json(bill);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 
 module.exports = router;

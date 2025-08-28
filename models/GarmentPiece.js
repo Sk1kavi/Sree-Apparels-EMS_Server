@@ -1,5 +1,9 @@
-// models/GarmentPiece.js
 const mongoose = require('mongoose');
+
+const PaymentSchema = new mongoose.Schema({
+  amount: { type: Number, required: true },
+  date: { type: Date, default: Date.now }
+});
 
 const GarmentPieceSchema = new mongoose.Schema({
   trunkNumber: { type: String, required: true, unique: true },
@@ -8,9 +12,17 @@ const GarmentPieceSchema = new mongoose.Schema({
   receivedDate: { type: Date, default: Date.now },
   dispatchedDate: Date,
   isDispatched: { type: Boolean, default: false },
-  paymentReceived: { type: Boolean, default: false },
-  paymentAmount: { type: Number, default: 0 },
   expectedPayment: { type: Number, required: true },
+
+  // Payment Tracking
+  payments: [PaymentSchema],  // store all partial payments
+  totalPaid: { type: Number, default: 0 },
+  paymentReceived: { type: Boolean, default: false },
+
+  // Fixed vendor
+  vendor: { type: String, default: "Ramraj Company" }
 });
+
+
 
 module.exports = mongoose.model('GarmentPiece', GarmentPieceSchema);
