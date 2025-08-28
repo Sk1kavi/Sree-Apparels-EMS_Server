@@ -4,6 +4,8 @@ const router = express.Router();
 const Staff = require("../models/Staff");
 const Stitching = require("../models/Stitching");
 const Attendance = require("../models/Attendance");
+const SalaryRecord = require("../models/SalaryRecord");
+
 
 // Helpers
 function startEndFromQuery(q) {
@@ -122,6 +124,29 @@ router.get("/summary", async (req, res) => {
     });
   } catch (err) {
     console.error("Salary summary error:", err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Finalize salaries
+router.post("/finalize", async (req, res) => {
+  try {
+    const { month, tailors, helpers, totals, rates } = req.body;
+
+    if (!month || !tailors || !helpers || !totals || !rates) {
+      return res.status(400).json({ error: "Missing required fields" });
+    }
+
+    // Either insert new or update existing for that month
+    const record = await SalaryRecord.findOneAndUpdate(
+      { month },
+      { month, tailors, helpers, totals, rates },
+      { upsert: true, new: true, setDefaultsOnInsert: true }
+    );
+
+    res.json({ message: "Salary finalized", record });
+  } catch (err) {
+    console.error("Finalize salary error:", err);
     res.status(500).json({ error: err.message });
   }
 });
