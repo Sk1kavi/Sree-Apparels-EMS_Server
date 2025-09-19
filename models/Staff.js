@@ -1,4 +1,3 @@
-// models/Staff.js
 const mongoose = require('mongoose');
 
 const staffSchema = new mongoose.Schema({
@@ -16,15 +15,15 @@ const staffSchema = new mongoose.Schema({
     enum: ['Tailor', 'Helper'],
     required: true,
   },
-  bankAccount: {
-    type: String,
-  },
   address: {
-    type: String,
+    state: { type: String },
+    district: { type: String },
+    city: { type: String },
+    pincode: { type: String },
   },
   imageUrl: {
     type: String,
-    default: ''
+    default: '',
   },
 }, {
   timestamps: true,
