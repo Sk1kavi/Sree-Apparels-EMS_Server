@@ -137,11 +137,22 @@ router.post("/finalize", async (req, res) => {
       return res.status(400).json({ error: "Missing required fields" });
     }
 
-    // Either insert new or update existing for that month
+    for (let t of tailors) {
+      if (!t.staffId) {
+        return res.status(400).json({ error: `Missing staffId for tailor: ${t.name}` });
+      }
+    }
+
+    for (let h of helpers) {
+      if (!h.staffId) {
+        return res.status(400).json({ error: `Missing staffId for helper: ${h.name}` });
+      }
+    }
+
     const record = await SalaryRecord.findOneAndUpdate(
       { month },
-      { month, tailors, helpers, totals, rates },
-      { upsert: true, new: true, setDefaultsOnInsert: true }
+      { $set: { month, tailors, helpers, totals, rates } },
+      { upsert: true, new: true, runValidators: true }
     );
 
     res.json({ message: "Salary finalized", record });
@@ -150,5 +161,6 @@ router.post("/finalize", async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
+
 
 module.exports = router;

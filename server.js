@@ -28,6 +28,8 @@ const stitchingRoutes = require('./routes/stitchingRoutes');
 app.use('/api/stitching', stitchingRoutes);
 const salaryRoutes = require("./routes/salary");
 app.use("/api/salary", salaryRoutes);
+const analysisRoutes = require("./routes/analysis");
+app.use("/api/analysis", analysisRoutes);
 
 // Serve uploaded images statically if needed (local disk storage fallback)
 app.use('/uploads', express.static('uploads'));

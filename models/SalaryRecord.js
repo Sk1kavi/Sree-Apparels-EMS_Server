@@ -4,7 +4,7 @@ const salaryRecordSchema = new mongoose.Schema({
   month: { type: String, required: true }, // YYYY-MM
   tailors: [
     {
-      staffId: { type: mongoose.Schema.Types.ObjectId, ref: "Staff" },
+      staffId: { type: mongoose.Schema.Types.ObjectId, ref: "Staff", required: true },
       name: String,
       salary: Number,
       totalPieces: Number
@@ -12,7 +12,7 @@ const salaryRecordSchema = new mongoose.Schema({
   ],
   helpers: [
     {
-      staffId: { type: mongoose.Schema.Types.ObjectId, ref: "Staff" },
+      staffId: { type: mongoose.Schema.Types.ObjectId, ref: "Staff", required: true  },
       name: String,
       salary: Number,
       presentShifts: Number
