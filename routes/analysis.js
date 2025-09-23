@@ -118,4 +118,92 @@ router.get("/stitching/:staffId", async (req, res) => {
     }
 });
 
+// --- Attendance Comparison (All Staff) ---
+// GET /api/analysis/attendance?year=YYYY&month=MM
+router.get("/attendance", async (req, res) => {
+  try {
+    const { year, month } = req.query;
+    const regex = new RegExp(`^${year}-${month.padStart(2, "0")}-`);
+
+    // Fetch all attendance records for the month
+    const records = await Attendance.find({ date: { $regex: regex } }).populate("staffId");
+
+    // Aggregate per staff
+    const result = {};
+    records.forEach(r => {
+      const staffId = r.staffId._id.toString();
+      if (!result[staffId]) result[staffId] = { name: r.staffId.name, role: r.staffId.role, presentShifts: 0, absentShifts: 0 };
+      if (r.status === "Present") result[staffId].presentShifts += 1;
+      else result[staffId].absentShifts += 1;
+    });
+
+    res.json(Object.values(result));
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Server Error" });
+  }
+});
+
+// --- Salary Comparison (All Staff) ---
+// GET /api/analysis/salary?year=YYYY&month=MM
+router.get("/salary", async (req, res) => {
+  try {
+    const { year, month } = req.query;
+    const monthStr = `${year}-${month.padStart(2, "0")}`;
+
+    const salaryRecord = await SalaryRecord.findOne({ month: monthStr });
+    if (!salaryRecord) return res.json([]);
+
+    const staffSalaries = [];
+
+    // Tailors
+    for (const t of salaryRecord.tailors) {
+      const staff = await Staff.findById(t.staffId);
+      if (staff) staffSalaries.push({ staffId: staff._id, name: staff.name, role: staff.role, salary: t.salary });
+    }
+
+    // Helpers
+    for (const h of salaryRecord.helpers) {
+      const staff = await Staff.findById(h.staffId);
+      if (staff) staffSalaries.push({ staffId: staff._id, name: staff.name, role: staff.role, salary: h.salary });
+    }
+
+    res.json(staffSalaries);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Server Error" });
+  }
+});
+
+// --- Stitching Comparison (Tailors Only) ---
+// GET /api/analysis/stitching?year=YYYY&month=MM
+router.get("/stitching", async (req, res) => {
+  try {
+    const { year, month } = req.query;
+    const startDate = new Date(`${year}-${month.padStart(2, "0")}-01`);
+    const endDate = new Date(startDate);
+    endDate.setMonth(endDate.getMonth() + 1);
+
+    // Fetch all tailors
+    const tailors = await Staff.find({ role: "Tailor" });
+
+    const stitchingData = [];
+
+    for (const t of tailors) {
+      const records = await Stitching.find({
+        tailor: t._id,
+        date: { $gte: startDate, $lt: endDate }
+      });
+
+      const totalStitched = records.reduce((acc, r) => acc + r.stitchedCount, 0);
+      stitchingData.push({ staffId: t._id, name: t.name, stitchedCount: totalStitched });
+    }
+
+    res.json(stitchingData);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Server Error" });
+  }
+});
+
 module.exports = router;
