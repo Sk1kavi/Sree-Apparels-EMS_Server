@@ -30,6 +30,8 @@ const salaryRoutes = require("./routes/salary");
 app.use("/api/salary", salaryRoutes);
 const analysisRoutes = require("./routes/analysis");
 app.use("/api/analysis", analysisRoutes);
+const authRoutes = require("./routes/authRoutes");
+app.use("/api/auth", authRoutes);
 
 // Serve uploaded images statically if needed (local disk storage fallback)
 app.use('/uploads', express.static('uploads'));
